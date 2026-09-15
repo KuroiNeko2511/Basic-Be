@@ -42,3 +42,20 @@ export const createUserRules = [
         .optional()
         .isInt({ min: 1, max: 120 }).withMessage('Age must be an integer between 1 and 120'),
 ];
+
+export const updateUserRules = [
+    body('name')
+        .optional()
+        .trim()
+        .isLength({ min: 2, max: 50 }).withMessage('Name must be between 2 and 50 characters'),
+
+    body('email')
+        .optional()
+        .trim()
+        .isEmail().withMessage('Email must be valid')
+        .normalizeEmail(),
+
+    body('age')
+        .optional()
+        .isInt({ min: 1, max: 120 }).withMessage('Age must be an integer between 1 and 120'),
+];
