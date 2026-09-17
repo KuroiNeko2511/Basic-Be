@@ -1,4 +1,4 @@
-import { readData, writeData } from "../repository/user.repository.js";
+import * as userRepository from "../repository/user.repository.js";
 import { NotFoundError, ConflictError } from "../core/error.response.js";
 
 const parseUserId = (userId) => {
@@ -28,21 +28,12 @@ export const getUserById = async (userId) => {
 };
 
 export const createUser = async (userData) => {
-    const id = Number(userId);
-
-    const existingUser = await userRepository.findById(id);
-    if (!existingUser) {
-        throw new NotFoundError("User not found");
+    const existingUser = await userRepository.findByEmail(userData.email);
+    if (existingUser) {
+        throw new ConflictError("Email already exists");
     }
 
-    if (updateData.email && updateData.email !== existingUser.email) {
-        const emailTaken = await userRepository.findByEmail(updateData.email);
-        if (emailTaken && emailTaken.id !== id) {
-            throw new ConflictError("Email already exists");
-        }
-    }
-
-    return await userRepository.update(id, updateData);
+    return await userRepository.create(userData);
 };
 
 export const updateUser = async (userId, updateData) => {

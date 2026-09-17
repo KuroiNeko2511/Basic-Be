@@ -16,7 +16,10 @@ export const findAll = async ({ sortBy = "id", order = "asc" }) => {
 };
 
 export const findById = async (id) => {
-  const [rows] = await pool.execute("SELECT * FROM users WHERE id = ?", [id]);
+  const [rows] = await pool.execute(
+    "SELECT id, name, email, age, role, created_at, updated_at FROM users WHERE id = ?",
+    [id]
+  );
   return rows[0] || null;
 };
 
@@ -25,12 +28,11 @@ export const findByEmail = async (email) => {
   return rows[0] || null;
 };
 
-export const create = async ({ name, email, age }) => {
+export const create = async ({ name, email, password, age, role }) => {
   const [result] = await pool.execute(
-    "INSERT INTO users (name, email, age) VALUES (?, ?, ?)",
-    [name, email, age]
+    "INSERT INTO users (name, email, password, age, role) VALUES (?, ?, ?, ?, ?)",
+    [name, email, password ?? null, age ?? null, role || "MEMBER"]
   );
-  // MySQL trả về insertId thay vì RETURNING *
   return findById(result.insertId);
 };
 
