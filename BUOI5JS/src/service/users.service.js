@@ -1,4 +1,5 @@
-import { readData, writeData } from "../repository/readData.js";
+import { readData, writeData } from "../repository/user.repository.js";
+import { NotFoundError, ConflictError } from "../core/error.response.js";
 
 const parseUserId = (userId) => {
     const parsedId = Number(userId);
@@ -11,58 +12,64 @@ const parseUserId = (userId) => {
     return parsedId;
 };
 
-export const getAllUsers = async () => {
-    const data = await readData();
-    return data.users;
+export const getAllUsers = async (query) => {
+    return await userRepository.findAll(query);
 };
 
 export const getUserById = async (userId) => {
-    const id = parseUserId(userId);
-    const data = await readData();
-    const user = data.users.find((u) => u.id === id);
+    const id = Number(userId);
+    const user = await userRepository.findById(id);
 
     if (!user) {
-        throw new NotFoundError(`User with ID ${id} not found`);
+        throw new NotFoundError("User not found");
     }
 
     return user;
 };
 
 export const createUser = async (userData) => {
-    const data = await readData();
-    data.users.push(userData);
-    await writeData(data);
-    return userData;
+    const id = Number(userId);
+
+    const existingUser = await userRepository.findById(id);
+    if (!existingUser) {
+        throw new NotFoundError("User not found");
+    }
+
+    if (updateData.email && updateData.email !== existingUser.email) {
+        const emailTaken = await userRepository.findByEmail(updateData.email);
+        if (emailTaken && emailTaken.id !== id) {
+            throw new ConflictError("Email already exists");
+        }
+    }
+
+    return await userRepository.update(id, updateData);
 };
 
 export const updateUser = async (userId, updateData) => {
-    if (!updateData || Object.keys(updateData).length === 0) {
-        throw new BadRequestError('Update payload cannot be empty');
+    const id = Number(userId);
+
+    const existingUser = await userRepository.findById(id);
+    if (!existingUser) {
+        throw new NotFoundError("User not found");
     }
 
-    const id = parseUserId(userId);
-    const data = await readData();
-    const index = data.users.findIndex((u) => u.id === id);
-
-    if (index === -1) {
-        throw new NotFoundError(`User with ID ${id} not found`);
+    if (updateData.email && updateData.email !== existingUser.email) {
+        const emailTaken = await userRepository.findByEmail(updateData.email);
+        if (emailTaken && emailTaken.id !== id) {
+            throw new ConflictError("Email already exists");
+        }
     }
 
-    // Merge changes and retain original user ID
-    data.users[index] = { ...data.users[index], ...updateData, id };
-    await writeData(data);
-    return data.users[index];
+    return await userRepository.update(id, updateData);
 };
 
 export const deleteUser = async (userId) => {
-    
-    const id = parseUserId(userId);
-    const data = await readData();
-    const index = data.users.findIndex((u) => u.id === id);
+    const id = Number(userId);
 
-    if (index === -1) throw new NotFoundError(`User with ID ${id} not found`);
+    const existingUser = await userRepository.findById(id);
+    if (!existingUser) {
+        throw new NotFoundError("User not found");
+    }
 
-    const [deletedUser] = data.users.splice(index, 1);
-    await writeData(data);
-    return deletedUser;
+    return await userRepository.deleteById(id);
 };

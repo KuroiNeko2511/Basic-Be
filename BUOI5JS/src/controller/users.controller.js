@@ -4,7 +4,7 @@ import { sendSuccess } from '../utils/responseHelper.js';
 import { NotFoundError } from '../core/error.response.js';
 
 export const getAllUsers = catchAsync(async (req, res) => {
-    const users = await usersService.getAllUsers();
+    const users = await usersService.getAllUsers(req.query);
     return sendSuccess(res, 200, 'Users retrieved successfully', users);
 });
 
