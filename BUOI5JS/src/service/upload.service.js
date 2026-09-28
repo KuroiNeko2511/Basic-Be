@@ -3,9 +3,7 @@ import path from 'path';
 
 export const formatUploadedFile = (file, req) => {
   if (!file) return null;
-
   const relativeUrl = `/uploads/${file.filename}`;
-
   return {
     filename: file.filename,
     originalName: file.originalname,
@@ -18,10 +16,8 @@ export const formatUploadedFile = (file, req) => {
 
 export const deleteUploadedFile = (fileUrlOrPath) => {
   if (!fileUrlOrPath) return false;
-
   const sanitizedPath = fileUrlOrPath.replace(/^\/+/, '');
   const absolutePath = path.join(process.cwd(), sanitizedPath);
-
   if (fs.existsSync(absolutePath)) {
     try {
       fs.unlinkSync(absolutePath);
@@ -31,6 +27,5 @@ export const deleteUploadedFile = (fileUrlOrPath) => {
       return false;
     }
   }
-
   return false;
 };
