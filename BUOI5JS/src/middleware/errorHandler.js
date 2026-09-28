@@ -1,4 +1,5 @@
 import ApiError from '../core/error.response.js';
+import multer from 'multer';
 
 // error handler middleware
 const errorHandler = (err, req, res, next) => {

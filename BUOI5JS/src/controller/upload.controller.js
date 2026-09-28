@@ -9,37 +9,31 @@ export const uploadSingleFile = catchAsync(async (req, res) => {
   return sendSuccess(res, 201, 'Upload file thành công', result);
 });
 
-// 1. Controller Upload 1 ảnh lên Cloudflare R2
+// 1. Upload 1 ảnh lên R2 và Lưu DB
 export const uploadImageToR2 = catchAsync(async (req, res) => {
-  const uploadResult = await r2Service.uploadBufferToR2(
-    req.file.buffer,
-    req.file.originalname,
-    req.file.mimetype,
-    'images'
-  );
+  const userId = req.user.id;
+  
+  const result = await uploadService.processSingleCloudUpload(req.file, userId, 'images');
 
-  return sendSuccess(res, 201, 'Upload ảnh lên Cloudflare R2 thành công', {
-    originalName: req.file.originalname,
-    mimetype: req.file.mimetype,
-    size: req.file.size,
-    url: uploadResult.url, // URL HTTPS công khai
-  });
+  return sendSuccess(res, 201, 'Upload ảnh lên R2 và lưu DB thành công', result);
 });
 
-// 2. Controller Upload tối đa 5 file tài liệu cùng lúc lên Cloudflare R2
+// 2. Upload tối đa 5 tài liệu lên R2 và Lưu DB
 export const uploadMultipleDocsToR2 = catchAsync(async (req, res) => {
-  const uploadPromises = req.files.map((file) =>
-    r2Service.uploadBufferToR2(file.buffer, file.originalname, file.mimetype, 'documents')
-  );
+  const userId = req.user.id;
 
-  const results = await Promise.all(uploadPromises);
+  const results = await uploadService.processMultipleCloudUpload(req.files, userId, 'documents');
 
-  const responseData = results.map((result, index) => ({
-    originalName: req.files[index].originalname,
-    mimetype: req.files[index].mimetype,
-    size: req.files[index].size,
-    url: result.url,
-  }));
+  return sendSuccess(res, 201, `Đã upload thành công ${req.files.length} file và lưu DB`, results);
+});
 
-  return sendSuccess(res, 201, `Đã upload thành công ${req.files.length} tài liệu lên Cloudflare R2`, responseData);
+// 3. Lấy Presigned URL
+export const getPresignedUrl = catchAsync(async (req, res) => {
+  const { filename, mimetype } = req.body;
+  if (!filename || !mimetype) {
+    return res.status(400).json({ message: "Vui lòng truyền filename và mimetype" });
+  }
+
+  const result = await r2Service.generatePresignedUrl(filename, mimetype);
+  return sendSuccess(res, 200, 'Tạo Presigned URL thành công', result);
 });

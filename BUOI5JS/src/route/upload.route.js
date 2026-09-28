@@ -1,21 +1,32 @@
 import { Router } from 'express';
 import * as uploadController from '../controller/upload.controller.js';
 import {
-  uploadSingleImage,
   uploadSingleImageMemory,
   uploadMultipleDocsMemory,
 } from '../middleware/upload.middleware.js';
-
+import { authenticateToken } from '../middleware/auth.middleware.js'; // Import hàm của bạn
 const router = Router();
 
-router.post('/file', uploadSingleImage('file'), uploadController.uploadSingleFile);
-router.post('/image', uploadSingleImage('image'), uploadController.uploadSingleFile);
-router.post('/avatar', uploadSingleImage('avatar'), uploadController.uploadSingleFile);
+// Endpoint upload 1 ảnh
+router.post(
+  '/cloud/image',
+  authenticateToken, 
+  uploadSingleImageMemory('image'), 
+  uploadController.uploadImageToR2
+);
 
-// 1. Route upload ảnh lên Cloudflare R2
-router.post('/cloud/image', uploadSingleImageMemory('image'), uploadController.uploadImageToR2);
+// Endpoint upload tối đa 5 tài liệu
+router.post(
+  '/cloud/documents', 
+  authenticateToken,
+  uploadMultipleDocsMemory('documents', 5), 
+  uploadController.uploadMultipleDocsToR2
+);
 
-// 2. Route upload tối đa 5 file tài liệu lên Cloudflare R2
-router.post('/cloud/documents', uploadMultipleDocsMemory('documents', 5), uploadController.uploadMultipleDocsToR2);
-
+// Endpoint lấy link Presigned (Optional)
+router.post(
+  '/cloud/presigned-url', 
+  authenticateToken,
+  uploadController.getPresignedUrl
+);
 export default router;
