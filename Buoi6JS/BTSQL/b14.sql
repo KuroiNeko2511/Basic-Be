@@ -1,4 +1,4 @@
-USE sgroup_learning_db; 
+USE test; 
 
 CREATE TABLE IF NOT EXISTS cloud_files (
     id INT AUTO_INCREMENT PRIMARY KEY,
